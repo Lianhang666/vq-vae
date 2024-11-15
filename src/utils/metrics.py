@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
+import torch.nn.functional as F
 from scipy import linalg
 import numpy as np
 from torch.nn.functional import adaptive_avg_pool2d
@@ -98,8 +99,8 @@ def calculate_fid(model, dataloader, device, batch_size=50):
             if len(real_images) >= batch_size:
                 break
     
-    mu_real, sigma_real = calculate_activation_statistics(real_images, inception, device=device)
-    mu_fake, sigma_fake = calculate_activation_statistics(generated_images, inception, device=device)
+    mu_real, sigma_real = calculate_activation_statistics(real_images, inception, device=device, dims=192)
+    mu_fake, sigma_fake = calculate_activation_statistics(generated_images, inception, device=device, dims=192)
     
     fid_value = calculate_frechet_distance(mu_real, sigma_real, mu_fake, sigma_fake)
     return fid_value
