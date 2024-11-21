@@ -34,7 +34,8 @@ def main():
         hidden_dims=args.hidden_dims,
         codebook_size=args.codebook_size,
         decay=args.decay,
-        commitment_weight=args.commitment_weight
+        commitment_weight=args.commitment_weight,
+        quantized_type='fsq'
     ).to(device)
     
     # Optimizer
