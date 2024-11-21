@@ -56,7 +56,7 @@ def test_model(model, test_loader, device,args):
     
     # 计算FID分数
     fid_calculator = FIDcalculator(device)
-    fid_score = fid_calculator.calculate_fid(real_images, recon_images,args.num_sample)
+    fid_score = fid_calculator.calculate_fid(real_images, recon_images, -1)
     
     # 打印结果
     print(f'====> Test set loss: {avg_test_loss:.4f}')

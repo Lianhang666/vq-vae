@@ -15,7 +15,7 @@ def train_one_epoch(model,train_loader,optimizer,device,epoch,args):
         for batch_idx,(data,_) in enumerate(pbar):
             data=data.to(device)
             optimizer.zero_grad()
-            recon_batch,commit_loss,_=model(data)
+            recon_batch,commit_loss,indices=model(data)
             recon_loss=F.mse_loss(recon_batch,data)
             loss=recon_loss+commit_loss
             loss.backward()
@@ -28,7 +28,8 @@ def train_one_epoch(model,train_loader,optimizer,device,epoch,args):
             pbar.set_postfix({
                 'recon_loss': total_recon_loss / (batch_idx + 1),
                 'commit_loss': total_commit_loss / (batch_idx + 1),
-                'total_loss': total_loss / (batch_idx + 1)
+                'total_loss': total_loss / (batch_idx + 1),
+                'active %': indices.unique().numel() / args.codebook_size * 100
             })
     #calculate the average loss and return 
     avg_recon_loss = total_recon_loss / len(train_loader)
@@ -53,7 +54,7 @@ def validate_one_epoch(model,val_loader,device,epoch,args):
         with tqdm(val_loader,desc=f'Validation Epoch{epoch+1}/{args.epochs}') as pbar:
             for batch_idx, (data,_) in enumerate(pbar):
                 data=data.to(device)
-                recon_batch,commit_loss,_=model(data)
+                recon_batch,commit_loss,indices=model(data)
                 recon_loss=F.mse_loss(recon_batch,data)
                 loss=recon_loss+commit_loss
                 # Update metrics
@@ -64,7 +65,8 @@ def validate_one_epoch(model,val_loader,device,epoch,args):
                 pbar.set_postfix({
                     'recon_loss': total_recon_loss / (batch_idx + 1),
                     'commit_loss': total_commit_loss / (batch_idx + 1),
-                    'total_loss': total_loss / (batch_idx + 1)
+                    'total_loss': total_loss / (batch_idx + 1),
+                    'active %': indices.unique().numel() / args.codebook_size * 100
                 })
                 recon_images.extend(recon_batch)
                 real_images.extend(data)

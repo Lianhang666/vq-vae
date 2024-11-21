@@ -15,6 +15,10 @@ def parse_args():
     parser.add_argument('--codebook_size', type=int, default=512)
     parser.add_argument('--decay', type=float, default=0.8)
     parser.add_argument('--commitment_weight', type=float, default=1.0)
+    parser.add_argument('--workers', type=int, default=4)
+
+    print('Arguments:', parser.parse_args())
+
     return parser.parse_args()
 
 def main():
@@ -22,7 +26,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     # Data
-    train_loader, val_loader, test_loader = get_cifar10_dataloaders(args.batch_size)
+    train_loader, val_loader, test_loader = get_cifar10_dataloaders(args.batch_size, args.workers)
     
     # Model
     model = VQVAE(
