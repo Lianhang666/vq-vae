@@ -4,6 +4,16 @@ from vector_quantize_pytorch import VectorQuantize, FSQ
 from .encoder import Encoder
 from .decoder import Decoder
 
+fsq_levels_lookup = {
+    16: [4, 4],
+    64: [4, 4, 4],
+    256: [8, 6, 5],
+    1024: [8, 5, 5, 5],
+    4096: [7, 5, 5, 5, 5],
+    16384: [8, 8, 8, 6, 5],
+    65536: [8, 8, 8, 5, 5, 5],
+}
+
 class VQVAE(nn.Module):
     def __init__(
         self,
@@ -12,7 +22,8 @@ class VQVAE(nn.Module):
         codebook_size=512,
         decay=0.8,
         commitment_weight=1.0,
-        quantized_type='fsq'
+        quantized_type='fsq',
+        rotation=False
     ):
         super().__init__()
         self.quantized_type=quantized_type
@@ -23,10 +34,11 @@ class VQVAE(nn.Module):
                 dim=hidden_dims,
                 codebook_size=codebook_size,
                 decay=decay,
-                commitment_weight=commitment_weight
+                commitment_weight=commitment_weight,
+                rotation=rotation
             )
         elif self.quantized_type=='fsq': 
-            self.fsq_levels=[8, 5, 5, 5]    
+            self.fsq_levels=fsq_levels_lookup[codebook_size]    
             self.quantizer = FSQ(
                 self.fsq_levels
             )
