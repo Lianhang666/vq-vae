@@ -84,11 +84,34 @@ def validate_one_epoch(model,val_loader,device,epoch,args):
         'fid_score': fid_score
     }
    
-def train_model(model,train_loader,val_loader,optimizer,device,args):
+def train_model(model, train_loader, val_loader, optimizer, device, args):
     checkpoint_dir = os.path.join('checkpoints', datetime.now().strftime('%Y%m%d_%H%M%S'))
     os.makedirs(checkpoint_dir, exist_ok=True)
-    best_fid = float('inf')
+    best_val_loss = float('inf')
+    num_bad_epochs = 0  # Number of epochs since last improvement
+
+    # Ensure 'patience' is set in args; default to 5 if not provided
+    if not hasattr(args, 'patience'):
+        args.patience = 10
+
     for epoch in range(args.epochs):
         train_metrics = train_one_epoch(model, train_loader, optimizer, device, epoch, args)
         val_metrics = validate_one_epoch(model, val_loader, device, epoch, args)
+        current_val_loss = val_metrics['total_loss']
+
+        # Check for improvement
+        if current_val_loss < best_val_loss:
+            best_val_loss = current_val_loss
+            num_bad_epochs = 0
+            # Save the best model
+            # torch.save(model.state_dict(), os.path.join(checkpoint_dir, 'best_model.pth'))
+            # print(f"Epoch {epoch+1}: New best validation loss: {best_val_loss:.6f}. Model saved.")
+        else:
+            num_bad_epochs += 1
+            # print(f"Epoch {epoch+1}: No improvement in validation loss for {num_bad_epochs} epoch(s).")
+
+        # Early stopping
+        if num_bad_epochs >= args.patience:
+            print(f"Early stopping triggered after {num_bad_epochs} epochs with no improvement.")
+            break
         
