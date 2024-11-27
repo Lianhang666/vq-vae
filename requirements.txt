@@ -1,0 +1,9 @@
+torch
+torchvision
+numpy
+matplotlib
+pillow
+scipy
+tqdm
+wandb
+vector-quantize-pytorch
