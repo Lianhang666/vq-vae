@@ -56,7 +56,8 @@ def validate_one_epoch(model,val_loader,device,epoch,codebook_size, args):
                 data=data.to(device)
                 recon_batch,commit_loss,indices=model(data)
                 recon_loss=F.mse_loss(recon_batch,data)
-                loss=recon_loss+commit_loss
+                # loss=recon_loss+commit_loss
+                loss=recon_loss
                 # Update metrics
                 total_recon_loss += recon_loss.item()
                 total_commit_loss += commit_loss.item()

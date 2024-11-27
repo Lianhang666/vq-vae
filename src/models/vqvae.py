@@ -27,8 +27,8 @@ class VQVAE(nn.Module):
     ):
         super().__init__()
         self.quantized_type=quantized_type
-        self.encoder = Encoder(in_channels, hidden_dims)
-        self.decoder = Decoder(in_channels, hidden_dims)
+        self.encoder = Encoder(in_channels, hidden_dims, 'h8xw8')
+        self.decoder = Decoder(in_channels, hidden_dims, 'h8xw8')
         if self.quantized_type=='vq':     
             self.quantizer = VectorQuantize(
                 dim=hidden_dims,
