@@ -14,7 +14,7 @@ def parse_args():
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--lr', type=float, default=3e-4)
     parser.add_argument('--hidden_dims', type=int, default=256)
-    parser.add_argument('--codebook_size', type=list, default=[16, 64, 256, 1024, 4096, 16384, 65536])
+    parser.add_argument('--codebook_size', type=int, default=[16, 64, 256, 1024, 4096, 16384, 65536], nargs='+')
     parser.add_argument('--decay', type=float, default=0.8)
     parser.add_argument('--commitment_weight', type=float, default=1.0)
     parser.add_argument('--workers', type=int, default=4)
@@ -26,7 +26,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-    wandb.login(key='b969446317599f594b3ad992680f7e8db1a4bfb8')
+    # wandb.login(key='b969446317599f594b3ad992680f7e8db1a4bfb8')
     wandb.init(project='Reconstruction_Experiment', name='Reconstruction_Experiment_0')
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
