@@ -6,7 +6,7 @@ from datetime import datetime
 from .utils.metrics import FIDcalculator
 
 ######################train######################################
-def train_one_epoch(model,train_loader,optimizer,device,epoch,args):
+def train_one_epoch(model,train_loader,optimizer,device,epoch,codebook_size, args):
     model.train()
     total_recon_loss=0
     total_commit_loss=0
@@ -29,7 +29,7 @@ def train_one_epoch(model,train_loader,optimizer,device,epoch,args):
                 'recon_loss': total_recon_loss / (batch_idx + 1),
                 'commit_loss': total_commit_loss / (batch_idx + 1),
                 'total_loss': total_loss / (batch_idx + 1),
-                'active %': indices.unique().numel() / args.codebook_size * 100
+                'active %': indices.unique().numel() / codebook_size * 100
             })
     #calculate the average loss and return 
     avg_recon_loss = total_recon_loss / len(train_loader)
@@ -42,7 +42,7 @@ def train_one_epoch(model,train_loader,optimizer,device,epoch,args):
     }
     
 #################validation#################################
-def validate_one_epoch(model,val_loader,device,epoch,args):
+def validate_one_epoch(model,val_loader,device,epoch,codebook_size, args):
     model.eval()
     total_recon_loss=0
     total_commit_loss=0
@@ -66,7 +66,7 @@ def validate_one_epoch(model,val_loader,device,epoch,args):
                     'recon_loss': total_recon_loss / (batch_idx + 1),
                     'commit_loss': total_commit_loss / (batch_idx + 1),
                     'total_loss': total_loss / (batch_idx + 1),
-                    'active %': indices.unique().numel() / args.codebook_size * 100
+                    'active %': indices.unique().numel() / codebook_size * 100
                 })
                 recon_images.extend(recon_batch)
                 real_images.extend(data)
@@ -84,7 +84,7 @@ def validate_one_epoch(model,val_loader,device,epoch,args):
         'fid_score': fid_score
     }
    
-def train_model(model, train_loader, val_loader, optimizer, device, args):
+def train_model(model, train_loader, val_loader, optimizer, device, codebook_size, args):
     checkpoint_dir = os.path.join('checkpoints', datetime.now().strftime('%Y%m%d_%H%M%S'))
     os.makedirs(checkpoint_dir, exist_ok=True)
     best_val_loss = float('inf')
@@ -95,8 +95,8 @@ def train_model(model, train_loader, val_loader, optimizer, device, args):
         args.patience = 10
 
     for epoch in range(args.epochs):
-        train_metrics = train_one_epoch(model, train_loader, optimizer, device, epoch, args)
-        val_metrics = validate_one_epoch(model, val_loader, device, epoch, args)
+        train_metrics = train_one_epoch(model, train_loader, optimizer, device, epoch, codebook_size, args)
+        val_metrics = validate_one_epoch(model, val_loader, device, epoch, codebook_size, args)
         current_val_loss = val_metrics['total_loss']
 
         # Check for improvement
