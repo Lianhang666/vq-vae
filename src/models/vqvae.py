@@ -35,7 +35,7 @@ class VQVAE(nn.Module):
                 codebook_size=codebook_size,
                 decay=decay,
                 commitment_weight=commitment_weight,
-                rotation=rotation
+                rotation_trick=rotation
             )
         elif self.quantized_type=='fsq': 
             self.fsq_levels=fsq_levels_lookup[codebook_size]    
