@@ -16,7 +16,7 @@ def test_model(model, test_loader, device, codebook_size, model_type, args):
     recon_images = []
     
     # Create results directory
-    os.makedirs(f'{model_type}_{codebook_size}', exist_ok=True)
+    os.makedirs(f'model_{codebook_size}/{model_type}_{codebook_size}', exist_ok=True)
     
     # Initialize a set to store all unique indices used
     total_indices = set()
@@ -54,7 +54,7 @@ def test_model(model, test_loader, device, codebook_size, model_type, args):
                     comparison = torch.cat([data[:n], recon_batch[:n]])
                     save_image(
                         comparison.cpu(),
-                        f'{model_type}_{codebook_size}/reconstruction.png',
+                        f'model_{codebook_size}/{model_type}_{codebook_size}/reconstruction.png',
                         nrow=n
                     )
     

@@ -97,8 +97,8 @@ def main():
             rotation=True
         ).to(device)
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
-        train_model(model, train_loader, val_loader, optimizer, device, args)
-        test_result = test_model(model, test_loader, device, codebook_size, model_type, codebook_size, args)
+        train_model(model, train_loader, val_loader, optimizer, device, codebook_size, args)
+        test_result = test_model(model, test_loader, device, codebook_size, model_type, args)
         torch.save(model.state_dict(), f'model_{codebook_size}/{model_type}_{codebook_size}.pt')
         test_results[model_type]['codebook_size'].append(codebook_size)
         test_results[model_type]['mse_loss'].append(test_result['mse_loss'])

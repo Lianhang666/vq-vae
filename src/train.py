@@ -4,6 +4,7 @@ import os
 from tqdm import tqdm
 from datetime import datetime
 from .utils.metrics import FIDcalculator
+import wandb
 
 ######################train######################################
 def train_one_epoch(model,train_loader,optimizer,device,epoch,codebook_size, args):
@@ -38,7 +39,7 @@ def train_one_epoch(model,train_loader,optimizer,device,epoch,codebook_size, arg
     return {
         'recon_loss': avg_recon_loss,
         'commit_loss': avg_commit_loss,
-        'total_loss': avg_total_loss
+        'total_loss': avg_total_loss,
     }
     
 #################validation#################################
@@ -97,6 +98,8 @@ def train_model(model, train_loader, val_loader, optimizer, device, codebook_siz
 
     for epoch in range(args.epochs):
         train_metrics = train_one_epoch(model, train_loader, optimizer, device, epoch, codebook_size, args)
+        # wandb.log(train_metrics)
+
         val_metrics = validate_one_epoch(model, val_loader, device, epoch, codebook_size, args)
         current_val_loss = val_metrics['total_loss']
 
