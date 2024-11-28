@@ -47,6 +47,16 @@ class Encoder(nn.Module):
                 nn.SiLU(),
             )
 
+        elif type == 'maxpool':
+            self.encoder = nn.Sequential(
+                nn.Conv2d(in_channels, 16, 3, 1, 1),
+                nn.MaxPool2d(2, 2),
+                nn.GELU(),
+                nn.Conv2d(16, 32, 3, 1, 1),
+                nn.MaxPool2d(2, 2),
+                nn.Conv2d(32, hidden_dims, 1)
+            )
+
         else:
             raise ValueError('Invalid encoder type')
     

@@ -45,7 +45,7 @@ def test_model(model, test_loader, device, codebook_size, model_type, args):
                 # Update progress bar
                 pbar.set_postfix({
                     'test_loss': test_loss / test_n_samples,
-                    'active %': indices.unique().numel() / codebook_size * 100
+                    'active %': indices.unique().numel() / model.codebook_size * 100
                 })
                 
                 # Save reconstruction results of the first batch

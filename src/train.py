@@ -30,7 +30,7 @@ def train_one_epoch(model,train_loader,optimizer,device,epoch,codebook_size, arg
                 'recon_loss': total_recon_loss / (batch_idx + 1),
                 'commit_loss': total_commit_loss / (batch_idx + 1),
                 'total_loss': total_loss / (batch_idx + 1),
-                'active %': indices.unique().numel() / codebook_size * 100
+                'active %': indices.unique().numel() / model.codebook_size * 100
             })
     #calculate the average loss and return 
     avg_recon_loss = total_recon_loss / len(train_loader)
@@ -68,7 +68,7 @@ def validate_one_epoch(model,val_loader,device,epoch,codebook_size, args):
                     'recon_loss': total_recon_loss / (batch_idx + 1),
                     'commit_loss': total_commit_loss / (batch_idx + 1),
                     'total_loss': total_loss / (batch_idx + 1),
-                    'active %': indices.unique().numel() / codebook_size * 100
+                    'active %': indices.unique().numel() / model.codebook_size * 100
                 })
                 recon_images.extend(recon_batch)
                 real_images.extend(data)

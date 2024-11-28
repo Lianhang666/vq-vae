@@ -1,3 +1,4 @@
+import math
 import torch
 import torch.nn as nn
 from vector_quantize_pytorch import VectorQuantize, FSQ
@@ -37,15 +38,17 @@ class VQVAE(nn.Module):
                 commitment_weight=commitment_weight,
                 rotation_trick=rotation
             )
+            self.codebook_size = codebook_size
         elif self.quantized_type=='fsq': 
             self.hidden_dims = len(fsq_levels_lookup[codebook_size])
             self.fsq_levels=fsq_levels_lookup[codebook_size]    
             self.quantizer = FSQ(
                 self.fsq_levels
             )
+            self.codebook_size = math.prod(self.fsq_levels)
             
-        self.encoder = Encoder(in_channels, self.hidden_dims, 'h8xw8')
-        self.decoder = Decoder(in_channels, self.hidden_dims, 'h8xw8')
+        self.encoder = Encoder(in_channels, self.hidden_dims, 'maxpool')
+        self.decoder = Decoder(in_channels, self.hidden_dims, 'maxpool')
         
     def forward(self, x):
         # Encode

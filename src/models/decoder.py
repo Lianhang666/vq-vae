@@ -45,6 +45,16 @@ class Decoder(nn.Module):
                 nn.ConvTranspose2d(32, out_channels, 3, 1, 1),
                 nn.Tanh()
             )
+
+        elif type == 'maxpool':
+            self.decoder = nn.Sequential(
+                nn.ConvTranspose2d(hidden_dims, 32, 3, 1, 1),
+                nn.Upsample(scale_factor=2, mode='nearest'),
+                nn.Conv2d(32, 16, 3, 1, 1),
+                nn.GELU(),
+                nn.Upsample(scale_factor=2, mode='nearest'),
+                nn.Conv2d(16, out_channels, 3, 1, 1)
+            )
         
         else:
             raise ValueError('Invalid decoder type')
