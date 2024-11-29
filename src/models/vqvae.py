@@ -24,7 +24,7 @@ class VQVAE(nn.Module):
         decay=0.8,
         commitment_weight=1.0,
         quantized_type='fsq',
-        rotation_trick=True
+        rotation=False
     ):
         super().__init__()
         self.quantized_type=quantized_type
@@ -36,7 +36,7 @@ class VQVAE(nn.Module):
                 codebook_size=codebook_size,
                 decay=decay,
                 commitment_weight=commitment_weight,
-                rotation_trick=rotation_trick
+                rotation_trick=rotation
             )
             self.codebook_size = codebook_size
         elif self.quantized_type=='fsq': 
