@@ -26,7 +26,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-    # wandb.login(key='b969446317599f594b3ad992680f7e8db1a4bfb8')
+    wandb.login(key='c1a738d565ce6a614812a9b1087ce4337960142b')
     wandb.init(project='Reconstruction_Experiment', name='Reconstruction_Experiment_0')
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
