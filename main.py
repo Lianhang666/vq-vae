@@ -53,7 +53,8 @@ def main():
             codebook_size=codebook_size,
             decay=args.decay,
             commitment_weight=args.commitment_weight,
-            quantized_type='vq'
+            quantized_type='vq',
+            rotation = False
         ).to(device)
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
         train_model(model, train_loader, val_loader, optimizer, device, codebook_size, args)
@@ -73,7 +74,8 @@ def main():
             codebook_size=codebook_size,
             decay=args.decay,
             commitment_weight=args.commitment_weight,
-            quantized_type='fsq'
+            quantized_type='fsq',
+            rotation = False
         ).to(device)
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
         train_model(model, train_loader, val_loader, optimizer, device, codebook_size, args)
