@@ -36,6 +36,14 @@ def train_one_epoch(model,train_loader,optimizer,device,epoch,codebook_size, arg
     avg_recon_loss = total_recon_loss / len(train_loader)
     avg_commit_loss = total_commit_loss / len(train_loader)
     avg_total_loss = total_loss / len(train_loader)
+    #plot the reults in wandb and need to distinguish between train and validation
+    wandb.log({
+        'recon_loss': avg_recon_loss,
+        'commit_loss': avg_commit_loss,
+        'total_loss': avg_total_loss,
+    })
+    
+    
     return {
         'recon_loss': avg_recon_loss,
         'commit_loss': avg_commit_loss,
@@ -78,7 +86,13 @@ def validate_one_epoch(model,val_loader,device,epoch,codebook_size, args):
     avg_recon_loss = total_recon_loss / len(val_loader)
     avg_commit_loss = total_commit_loss / len(val_loader)
     avg_total_loss = total_loss / len(val_loader)
-    
+    #plot the reults in wandb
+    wandb.log({
+        'val_recon_loss': avg_recon_loss,
+        'val_commit_loss': avg_commit_loss,
+        'val_total_loss': avg_total_loss,
+        'val_fid_score': fid_score
+    })
     return {
         'recon_loss': avg_recon_loss,
         'commit_loss': avg_commit_loss,

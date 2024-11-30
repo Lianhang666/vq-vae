@@ -85,6 +85,7 @@ def main():
         test_results[model_type]['mse_loss'].append(test_result['mse_loss'])
         test_results[model_type]['fid_score'].append(test_result['fid_score'])
         test_results[model_type]['codebook_usage'].append(test_result['codebook_usage'])
+        
 
         # Training VQ-VAE with Rotation
         model_type = 'vqvae_rotation'
