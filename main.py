@@ -48,6 +48,7 @@ def main():
         model_type = 'vqvae'
         print("Training VQ-VAE")
         model = VQVAE(
+            model_type,
             in_channels=3,
             hidden_dims=args.hidden_dims,
             codebook_size=codebook_size,
@@ -70,6 +71,7 @@ def main():
         model_type = 'fsqvae'
         print("Training FSQ-VAE")
         model = VQVAE(
+            model_type,
             in_channels=3,
             hidden_dims=args.hidden_dims,
             codebook_size=codebook_size,
@@ -92,13 +94,14 @@ def main():
         model_type = 'vqvae_rotation'
         print("Training VQ-VAE with Rotation")
         model = VQVAE(
+            model_type,
             in_channels=3,
             hidden_dims=args.hidden_dims,
             codebook_size=codebook_size,
             decay=args.decay,
             commitment_weight=args.commitment_weight,
             quantized_type='vq',
-            rotation=True
+            rotation=True,
         ).to(device)
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
         train_model(model, train_loader, val_loader, optimizer, device, codebook_size, args)

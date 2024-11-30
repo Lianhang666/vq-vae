@@ -18,6 +18,7 @@ fsq_levels_lookup = {
 class VQVAE(nn.Module):
     def __init__(
         self,
+        model_type,
         in_channels=3,
         hidden_dims=256,
         codebook_size=512,
@@ -27,6 +28,7 @@ class VQVAE(nn.Module):
         rotation = False
     ):
         super().__init__()
+        self.model_type = model_type
         self.quantized_type=quantized_type
 
         if self.quantized_type=='vq':     

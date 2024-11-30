@@ -38,13 +38,14 @@ def train_one_epoch(model,train_loader,optimizer,device,epoch,codebook_size, arg
     avg_total_loss = total_loss / len(train_loader)
     avg_active = indices.unique().numel() / model.codebook_size * 100
     #plot the reults in wandb and need to distinguish between train and validation the log name must contiaon train or validation
-    wandb.log({ 'train_recon_loss': avg_recon_loss, 'train_commit_loss': avg_commit_loss, 'train_total_loss': avg_total_loss, 'active ': avg_active})
+    #wandb.log({ 'train_recon_loss': avg_recon_loss, 'train_commit_loss': avg_commit_loss, 'train_total_loss': avg_total_loss, 'active ': avg_active})
     
     
     return {
         'recon_loss': avg_recon_loss,
         'commit_loss': avg_commit_loss,
         'total_loss': avg_total_loss,
+        'active': avg_active
     }
     
 #################validation#################################
@@ -85,11 +86,12 @@ def validate_one_epoch(model,val_loader,device,epoch,codebook_size, args):
     val_avg_total_loss = total_loss / len(val_loader)
     val_avg_active = indices.unique().numel() / model.codebook_size
     #plot the reults in wandb and need to distinguish between train and validation
-    wandb.log({ 'val_recon_loss': val_avg_recon_loss, 'val_commit_loss': val_avg_commit_loss, 'val_total_loss': val_avg_total_loss, 'val_active ':val_avg_active})
+    #wandb.log({ 'val_recon_loss': val_avg_recon_loss, 'val_commit_loss': val_avg_commit_loss, 'val_total_loss': val_avg_total_loss, 'val_active ':val_avg_active})
     return {
         'recon_loss': avg_recon_loss,
         'commit_loss': avg_commit_loss,
         'total_loss': avg_total_loss,
+        'active': avg_active
     }
    
 def train_model(model, train_loader, val_loader, optimizer, device, codebook_size, args):
@@ -105,8 +107,36 @@ def train_model(model, train_loader, val_loader, optimizer, device, codebook_siz
     for epoch in range(args.epochs):
         train_metrics = train_one_epoch(model, train_loader, optimizer, device, epoch, codebook_size, args)
         # wandb.log(train_metrics)
-
+        if model.quantized_type == 'vq':
+            wandb.log({f'vq_vae_{codebook_size}_train_recon_loss': train_metrics['recon_loss'], 
+                          f'vq_vae_{codebook_size}_train_commit_loss': train_metrics['commit_loss'], 
+                          f'vq_vae_{codebook_size}_train_total_loss': train_metrics['total_loss'], 
+                          f'vq_vae_{codebook_size}_train_active': train_metrics['active']})
+        elif model.quantized_type == 'fsq':
+            wandb.log({f'fsq_vae_{codebook_size}_train_recon_loss': train_metrics['recon_loss'], 
+                          f'fsq_vae_{codebook_size}_train_total_loss': train_metrics['total_loss'], 
+                          f'fsq_vae_{codebook_size}_train_active': train_metrics['active']})
+        elif model.quantized_type == 'vq_rotation':
+            wandb.log({f'vq_rotation_vae_{codebook_size}_train_recon_loss': train_metrics['recon_loss'], 
+                          f'vq_rotation_vae_{codebook_size}_train_commit_loss': train_metrics['commit_loss'], 
+                          f'vq_rotation_vae_{codebook_size}_train_total_loss': train_metrics['total_loss'], 
+                          f'vq_rotation_vae_{codebook_size}_train_active': train_metrics['active']})
+        # Validate    
         val_metrics = validate_one_epoch(model, val_loader, device, epoch, codebook_size, args)
+        if model.quantized_type == 'vq':
+            wandb.log({f'vq_vae_{codebook_size}_val_recon_loss': val_metrics['recon_loss'], 
+                          f'vq_vae_{codebook_size}_val_commit_loss': val_metrics['commit_loss'], 
+                          f'vq_vae_{codebook_size}_val_total_loss': val_metrics['total_loss'], 
+                          f'vq_vae_{codebook_size}_val_active': val_metrics['active']})
+        elif model.quantized_type == 'fsq':
+            wandb.log({f'fsq_vae_{codebook_size}_val_recon_loss': val_metrics['recon_loss'], 
+                          f'fsq_vae_{codebook_size}_val_total_loss': val_metrics['total_loss'], 
+                          f'fsq_vae_{codebook_size}_val_active': val_metrics['active']})
+        elif model.quantized_type == 'vq_rotation':
+            wandb.log({f'vq_rotation_vae_{codebook_size}_val_recon_loss': val_metrics['recon_loss'], 
+                          f'vq_rotation_vae_{codebook_size}_val_commit_loss': val_metrics['commit_loss'], 
+                          f'vq_rotation_vae_{codebook_size}_val_total_loss': val_metrics['total_loss'], 
+                          f'vq_rotation_vae_{codebook_size}_val_active': val_metrics['active']})
         current_val_loss = val_metrics['total_loss']
 
         # Check for improvement
