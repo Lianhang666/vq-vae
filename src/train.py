@@ -36,12 +36,9 @@ def train_one_epoch(model,train_loader,optimizer,device,epoch,codebook_size, arg
     avg_recon_loss = total_recon_loss / len(train_loader)
     avg_commit_loss = total_commit_loss / len(train_loader)
     avg_total_loss = total_loss / len(train_loader)
-    #plot the reults in wandb and need to distinguish between train and validation
-    wandb.log({
-        'recon_loss': avg_recon_loss,
-        'commit_loss': avg_commit_loss,
-        'total_loss': avg_total_loss,
-    })
+    avg_active = indices.unique().numel() / model.codebook_size * 100
+    #plot the reults in wandb and need to distinguish between train and validation the log name must contiaon train or validation
+    wandb.log({ 'train_recon_loss': avg_recon_loss, 'train_commit_loss': avg_commit_loss, 'train_total_loss': avg_total_loss, 'active ': avg_active})
     
     
     return {
@@ -80,24 +77,19 @@ def validate_one_epoch(model,val_loader,device,epoch,codebook_size, args):
                 })
                 recon_images.extend(recon_batch)
                 real_images.extend(data)
-    fid_calculator = FIDcalculator(device=device)
-    fid_score = fid_calculator.calculate_fid(real_images, recon_images,args.num_sample)
-    print(f'FID Score: {fid_score:.2f}')
-    avg_recon_loss = total_recon_loss / len(val_loader)
-    avg_commit_loss = total_commit_loss / len(val_loader)
-    avg_total_loss = total_loss / len(val_loader)
-    #plot the reults in wandb
-    wandb.log({
-        'val_recon_loss': avg_recon_loss,
-        'val_commit_loss': avg_commit_loss,
-        'val_total_loss': avg_total_loss,
-        'val_fid_score': fid_score
-    })
+    # fid_calculator = FIDcalculator(device=device)
+    # fid_score = fid_calculator.calculate_fid(real_images, recon_images,args.num_sample)
+    # print(f'FID Score: {fid_score:.2f}')
+    val_avg_recon_loss = total_recon_loss / len(val_loader)
+    val_avg_commit_loss = total_commit_loss / len(val_loader)
+    val_avg_total_loss = total_loss / len(val_loader)
+    val_avg_active = indices.unique().numel() / model.codebook_size
+    #plot the reults in wandb and need to distinguish between train and validation
+    wandb.log({ 'val_recon_loss': val_avg_recon_loss, 'val_commit_loss': val_avg_commit_loss, 'val_total_loss': val_avg_total_loss, 'val_active ':val_avg_active})
     return {
         'recon_loss': avg_recon_loss,
         'commit_loss': avg_commit_loss,
         'total_loss': avg_total_loss,
-        'fid_score': fid_score
     }
    
 def train_model(model, train_loader, val_loader, optimizer, device, codebook_size, args):

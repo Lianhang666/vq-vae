@@ -27,7 +27,7 @@ def parse_args():
 def main():
     args = parse_args()
     wandb.login(key='c1a738d565ce6a614812a9b1087ce4337960142b')
-    wandb.init(project='Reconstruction_Experiment', name='Reconstruction_Experiment_0')
+    wandb.init(project='Reconstruction_Experiment', name='Reconstruction_Experiment_1')
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     # Data
@@ -64,6 +64,7 @@ def main():
         test_results[model_type]['mse_loss'].append(test_result['mse_loss'])
         test_results[model_type]['fid_score'].append(test_result['fid_score'])
         test_results[model_type]['codebook_usage'].append(test_result['codebook_usage'])
+        
 
         # Training FSQ-VAE
         model_type = 'fsqvae'
