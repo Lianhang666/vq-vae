@@ -6,6 +6,13 @@ import numpy as np
 from torch.nn.functional import adaptive_avg_pool2d
 import torch.nn.functional as F
 
+def multiplyList(myList):
+    # Multiply elements one by one
+    result = 1
+    for x in myList:
+        result = result * x
+    return result
+
 #construct the feature extracter
 class Inception(nn.Module):
     def __init__(self,device='cuda'):

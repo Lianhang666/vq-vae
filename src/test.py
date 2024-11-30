@@ -3,7 +3,9 @@ import torch.nn.functional as F
 from torchvision.utils import save_image
 import os
 from tqdm import tqdm
-from .utils.metrics import FIDcalculator
+from .utils.metrics import FIDcalculator, multiplyList
+from .models.vqvae import fsq_levels_lookup
+
 
 def test_model(model, test_loader, device, codebook_size, model_type, args):
     """Evaluate the VQ-VAE model and calculate FID score."""
@@ -31,12 +33,17 @@ def test_model(model, test_loader, device, codebook_size, model_type, args):
                 recon_batch, commit_loss, indices = model(data)
                 
                 # Update total_indices with unique indices from the current batch
-                if model_type == 'fsq':
-                # total_indices.update(indices.cpu().numpy().flatten().tolist())
-                    for idx in indices.cpu().numpy().flatten().tolist():
-                        total_indices.add(idx.item())
-                else:
-                    total_indices.update(indices.cpu().numpy().flatten().tolist())
+                # index shape: [B, H * W]
+                for idx in indices.cpu().numpy().flatten().tolist():
+                    total_indices.add(idx)
+
+
+                # if model_type == 'fsq':
+                #     total_indices.update(indices.cpu().numpy().flatten().tolist())
+                #     # for idx in indices.cpu().numpy().flatten().tolist():
+                #     #     total_indices.add(idx.item())
+                # else:
+                #     total_indices.update(indices.cpu().numpy().flatten().tolist())
                 
                 # Compute reconstruction loss
                 recon_loss = F.mse_loss(recon_batch, data, reduction='sum')
@@ -67,8 +74,10 @@ def test_model(model, test_loader, device, codebook_size, model_type, args):
     avg_test_loss = test_loss / test_n_samples
     
     # Compute total codebook usage percentage
-    print(f'Total indices: {len(total_indices)}')
-    total_active_percentage = len(total_indices) / codebook_size * 100
+    # print(f'Total indices: {len(total_indices)}')
+    if model_type == 'fsq':
+        codebook_size = multiplyList(fsq_levels_lookup[codebook_size])
+    total_active_percentage = len(set(total_indices)) / codebook_size * 100
     
     # Compute FID score
     fid_calculator = FIDcalculator(device)

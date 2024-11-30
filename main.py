@@ -13,7 +13,7 @@ def parse_args():
     parser.add_argument('--num_sample', type=int, default=10)
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--lr', type=float, default=3e-4)
-    parser.add_argument('--hidden_dims', type=int, default=256)
+    parser.add_argument('--hidden_dims', type=int, default=64)
     parser.add_argument('--codebook_size', type=int, default=[16, 64, 256, 1024, 4096, 16384, 65536], nargs='+')
     parser.add_argument('--decay', type=float, default=0.8)
     parser.add_argument('--commitment_weight', type=float, default=1.0)

@@ -56,6 +56,16 @@ class Encoder(nn.Module):
                 nn.MaxPool2d(2, 2),
                 nn.Conv2d(32, hidden_dims, 1)
             )
+        elif type == 'relu4':
+            self.encoder = nn.Sequential(
+                nn.Conv2d(in_channels, 64, 4, 2, 1),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(64, 64, 4, 1, 1),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(64, 64, 4, 1, 1),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(64, hidden_dims, 1)
+            )
 
         else:
             raise ValueError('Invalid encoder type')

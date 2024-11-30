@@ -55,6 +55,16 @@ class Decoder(nn.Module):
                 nn.Upsample(scale_factor=2, mode='nearest'),
                 nn.Conv2d(16, out_channels, 3, 1, 1)
             )
+        elif type == 'relu4':
+            self.decoder = nn.Sequential(
+                nn.ConvTranspose2d(hidden_dims, 64, 4, 1, 1),
+                nn.ReLU(),
+                nn.ConvTranspose2d(64, 64, 4, 1, 1),
+                nn.ReLU(),
+                nn.ConvTranspose2d(64, 64, 4, 2, 1),
+                nn.ReLU(),
+                nn.Conv2d(64, out_channels, 1),
+            )
         
         else:
             raise ValueError('Invalid decoder type')

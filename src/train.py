@@ -17,9 +17,13 @@ def train_one_epoch(model,train_loader,optimizer,device,epoch,codebook_size, arg
             data=data.to(device)
             optimizer.zero_grad()
             recon_batch,commit_loss,indices=model(data)
-            print(f'indecies shape: {indices.shape}')
-            print(f'indecies: {indices}')
-            print(f'unique indecies: {indices.unique()}')
+            # print(f'indecies shape: {indices.shape}')
+            # print(f'indecies: {indices}')
+            # print(f'unique indecies: {indices.unique()}')
+
+            index_list=indices.cpu().numpy().flatten().tolist()
+            print(f'index_list flatten size: {index_list.__len__()}')
+
             recon_loss=F.mse_loss(recon_batch,data)
             loss=recon_loss+commit_loss
             loss.backward()
@@ -33,7 +37,8 @@ def train_one_epoch(model,train_loader,optimizer,device,epoch,codebook_size, arg
                 'recon_loss': total_recon_loss / (batch_idx + 1),
                 'commit_loss': total_commit_loss / (batch_idx + 1),
                 'total_loss': total_loss / (batch_idx + 1),
-                'active %': indices.unique().numel() / model.codebook_size * 100
+                # 'active %': indices.unique().numel() / model.codebook_size * 100
+                'active %': len(set(index_list)) / model.codebook_size * 100
             })
     #calculate the average loss and return 
     avg_recon_loss = total_recon_loss / len(train_loader)

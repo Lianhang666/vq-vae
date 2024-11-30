@@ -47,8 +47,8 @@ class VQVAE(nn.Module):
             )
             self.codebook_size = math.prod(self.fsq_levels)
             
-        self.encoder = Encoder(in_channels, self.hidden_dims, 'maxpool')
-        self.decoder = Decoder(in_channels, self.hidden_dims, 'maxpool')
+        self.encoder = Encoder(in_channels, self.hidden_dims, 'relu4')
+        self.decoder = Decoder(in_channels, self.hidden_dims, 'relu4')
         
     def forward(self, x):
         # Encode
@@ -57,14 +57,16 @@ class VQVAE(nn.Module):
             # Reshape for VQ
             z = z.permute(0, 2, 3, 1)  # [B, H, W, C]
             shape = z.shape
-            z = z.reshape(-1, shape[-1])  # [B*H*W, C]
+            # z = z.reshape(-1, shape[-1])  # [B*H*W, C]
+            z = z.reshape(shape[0], shape[1] * shape[2], shape[3])
  
             quantized, indices, commit_loss = self.quantizer(z)
             
             # Reshape back
             quantized = quantized.reshape(shape)  # [B, H, W, C]
             quantized = quantized.permute(0, 3, 1, 2)  # [B, C, H, W]
-            indices=indices.reshape(shape[0],shape[1],shape[2])
+            # print(indices.shape)
+            # indices=indices.reshape(shape[0],shape[1],shape[2])
         elif self.quantized_type == 'fsq':
             # Reshape for FSQ
             z = z.permute(0, 2, 3, 1)  # [B, H, W, C]
@@ -78,7 +80,7 @@ class VQVAE(nn.Module):
             # Reshape back
             quantized = quantized.reshape(shape)
             quantized = quantized.permute(0, 3, 1, 2)           
-            indices = indices.reshape(shape[0], shape[1] * shape[2])  # [B, H, W]
+            # indices = indices.reshape(shape[0], shape[1], shape[2])  # [B, H, W]
  
         # Decode
         x_recon = self.decoder(quantized)
