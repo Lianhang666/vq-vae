@@ -88,10 +88,10 @@ def validate_one_epoch(model,val_loader,device,epoch,codebook_size, args):
     #plot the reults in wandb and need to distinguish between train and validation
     #wandb.log({ 'val_recon_loss': val_avg_recon_loss, 'val_commit_loss': val_avg_commit_loss, 'val_total_loss': val_avg_total_loss, 'val_active ':val_avg_active})
     return {
-        'recon_loss': avg_recon_loss,
-        'commit_loss': avg_commit_loss,
-        'total_loss': avg_total_loss,
-        'active': avg_active
+        'recon_loss': val_avg_recon_loss,
+        'commit_loss': val_avg_commit_loss,
+        'total_loss': val_avg_total_loss,
+        'active': val_avg_active
     }
    
 def train_model(model, train_loader, val_loader, optimizer, device, codebook_size, args):
