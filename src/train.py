@@ -22,7 +22,7 @@ def train_one_epoch(model,train_loader,optimizer,device,epoch,codebook_size, arg
             # print(f'unique indecies: {indices.unique()}')
 
             index_list=indices.cpu().numpy().flatten().tolist()
-            print(f'index_list flatten size: {index_list.__len__()}')
+            # print(f'index_list flatten size: {index_list.__len__()}')
 
             recon_loss=F.mse_loss(recon_batch,data)
             loss=recon_loss+commit_loss
@@ -83,7 +83,7 @@ def validate_one_epoch(model,val_loader,device,epoch,codebook_size, args):
     fid_calculator = FIDcalculator(device=device)
     #skip fid for now
     fid_score = 0 #fid_calculator.calculate_fid(real_images, recon_images,args.num_sample)
-    print(f'FID Score: {fid_score:.2f}')
+    # print(f'FID Score: {fid_score:.2f}')
     avg_recon_loss = total_recon_loss / len(val_loader)
     avg_commit_loss = total_commit_loss / len(val_loader)
     avg_total_loss = total_loss / len(val_loader)

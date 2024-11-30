@@ -82,8 +82,8 @@ def test_model(model, test_loader, device, codebook_size, model_type, args):
     # Compute FID score
     fid_calculator = FIDcalculator(device)
     #skip fid for now
-    # fid_score = fid_calculator.calculate_fid(real_images, recon_images, -1)
-    fid_score = 0
+    fid_score = fid_calculator.calculate_fid(real_images, recon_images, -1)
+    # fid_score = 0
     
     # Print results
     print(f'====> Test set loss: {avg_test_loss:.4f}')
