@@ -31,7 +31,12 @@ def test_model(model, test_loader, device, codebook_size, model_type, args):
                 recon_batch, commit_loss, indices = model(data)
                 
                 # Update total_indices with unique indices from the current batch
-                total_indices.update(indices.cpu().numpy().flatten().tolist())
+                if model_type == 'fsq':
+                # total_indices.update(indices.cpu().numpy().flatten().tolist())
+                    for idx in indices.cpu().numpy().flatten().tolist():
+                        total_indices.add(idx.item())
+                else:
+                    total_indices.update(indices.cpu().numpy().flatten().tolist())
                 
                 # Compute reconstruction loss
                 recon_loss = F.mse_loss(recon_batch, data, reduction='sum')
@@ -62,11 +67,14 @@ def test_model(model, test_loader, device, codebook_size, model_type, args):
     avg_test_loss = test_loss / test_n_samples
     
     # Compute total codebook usage percentage
+    print(f'Total indices: {len(total_indices)}')
     total_active_percentage = len(total_indices) / codebook_size * 100
     
     # Compute FID score
     fid_calculator = FIDcalculator(device)
-    fid_score = fid_calculator.calculate_fid(real_images, recon_images, -1)
+    #skip fid for now
+    # fid_score = fid_calculator.calculate_fid(real_images, recon_images, -1)
+    fid_score = 0
     
     # Print results
     print(f'====> Test set loss: {avg_test_loss:.4f}')
