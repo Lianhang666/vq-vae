@@ -107,32 +107,32 @@ def train_model(model, train_loader, val_loader, optimizer, device, codebook_siz
     for epoch in range(args.epochs):
         train_metrics = train_one_epoch(model, train_loader, optimizer, device, epoch, codebook_size, args)
         # wandb.log(train_metrics)
-        if model.quantized_type == 'vq':
+        if model.model_type == 'vq':
             wandb.log({f'vq_vae_{codebook_size}_train_recon_loss': train_metrics['recon_loss'], 
                           f'vq_vae_{codebook_size}_train_commit_loss': train_metrics['commit_loss'], 
                           f'vq_vae_{codebook_size}_train_total_loss': train_metrics['total_loss'], 
                           f'vq_vae_{codebook_size}_train_active': train_metrics['active']})
-        elif model.quantized_type == 'fsq':
+        elif model.model_type == 'fsq':
             wandb.log({f'fsq_vae_{codebook_size}_train_recon_loss': train_metrics['recon_loss'], 
                           f'fsq_vae_{codebook_size}_train_total_loss': train_metrics['total_loss'], 
                           f'fsq_vae_{codebook_size}_train_active': train_metrics['active']})
-        elif model.quantized_type == 'vq_rotation':
+        elif model.model_type == 'vq_rotation':
             wandb.log({f'vq_rotation_vae_{codebook_size}_train_recon_loss': train_metrics['recon_loss'], 
                           f'vq_rotation_vae_{codebook_size}_train_commit_loss': train_metrics['commit_loss'], 
                           f'vq_rotation_vae_{codebook_size}_train_total_loss': train_metrics['total_loss'], 
                           f'vq_rotation_vae_{codebook_size}_train_active': train_metrics['active']})
         # Validate    
         val_metrics = validate_one_epoch(model, val_loader, device, epoch, codebook_size, args)
-        if model.quantized_type == 'vq':
+        if model.model_type == 'vq':
             wandb.log({f'vq_vae_{codebook_size}_val_recon_loss': val_metrics['recon_loss'], 
                           f'vq_vae_{codebook_size}_val_commit_loss': val_metrics['commit_loss'], 
                           f'vq_vae_{codebook_size}_val_total_loss': val_metrics['total_loss'], 
                           f'vq_vae_{codebook_size}_val_active': val_metrics['active']})
-        elif model.quantized_type == 'fsq':
+        elif model.model_type == 'fsq':
             wandb.log({f'fsq_vae_{codebook_size}_val_recon_loss': val_metrics['recon_loss'], 
                           f'fsq_vae_{codebook_size}_val_total_loss': val_metrics['total_loss'], 
                           f'fsq_vae_{codebook_size}_val_active': val_metrics['active']})
-        elif model.quantized_type == 'vq_rotation':
+        elif model.model_type == 'vq_rotation':
             wandb.log({f'vq_rotation_vae_{codebook_size}_val_recon_loss': val_metrics['recon_loss'], 
                           f'vq_rotation_vae_{codebook_size}_val_commit_loss': val_metrics['commit_loss'], 
                           f'vq_rotation_vae_{codebook_size}_val_total_loss': val_metrics['total_loss'], 
