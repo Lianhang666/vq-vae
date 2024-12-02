@@ -59,8 +59,8 @@ class Encoder(nn.Module):
         elif type == 'relu4':
             self.encoder = nn.Sequential(
                 nn.Conv2d(in_channels, 64, 4, 2, 1),
-                nn.ReLU(inplace=True),
-                nn.Conv2d(64, 64, 4, 1, 1),
+                # nn.ReLU(inplace=True),
+                # nn.Conv2d(64, 64, 4, 1, 1),
                 nn.ReLU(inplace=True),
                 nn.Conv2d(64, 64, 4, 1, 1),
                 nn.ReLU(inplace=True),

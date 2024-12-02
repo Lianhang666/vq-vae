@@ -9,7 +9,7 @@ from src.data.dataset import get_cifar10_dataloaders
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--batch_size', type=int, default=128)
+    parser.add_argument('--batch_size', type=int, default=256)
     parser.add_argument('--num_sample', type=int, default=10)
     parser.add_argument('--epochs', type=int, default=150)
     parser.add_argument('--lr', type=float, default=3e-4)

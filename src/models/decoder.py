@@ -58,8 +58,8 @@ class Decoder(nn.Module):
         elif type == 'relu4':
             self.decoder = nn.Sequential(
                 nn.ConvTranspose2d(hidden_dims, 64, 4, 1, 1),
-                nn.ReLU(),
-                nn.ConvTranspose2d(64, 64, 4, 1, 1),
+                # nn.ReLU(),
+                # nn.ConvTranspose2d(64, 64, 4, 1, 1),
                 nn.ReLU(),
                 nn.ConvTranspose2d(64, 64, 4, 2, 1),
                 nn.ReLU(),
