@@ -9,13 +9,13 @@ from src.data.dataset import get_cifar10_dataloaders
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--batch_size', type=int, default=256)
+    parser.add_argument('--batch_size', type=int, default=128)
     parser.add_argument('--num_sample', type=int, default=10)
-    parser.add_argument('--epochs', type=int, default=100)
+    parser.add_argument('--epochs', type=int, default=150)
     parser.add_argument('--lr', type=float, default=3e-4)
     parser.add_argument('--hidden_dims', type=int, default=64)
     # parser.add_argument('--codebook_size', type=int, default=[16, 64, 256, 1024, 4096, 16384, 65536], nargs='+')
-    parser.add_argument('--codebook_size', type=int, default=[4096, 16384, 65536], nargs='+')
+    parser.add_argument('--codebook_size', type=int, default=[65536, 16384, 4096, 1024, 256, 64, 16], nargs='+')
     parser.add_argument('--decay', type=float, default=0.8)
     parser.add_argument('--commitment_weight', type=float, default=1.0)
     parser.add_argument('--workers', type=int, default=4)
@@ -59,6 +59,9 @@ def main():
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
         train_model(model, train_loader, val_loader, optimizer, device, codebook_size, args)
         test_result = test_model(model, test_loader, device, codebook_size, model_type, args)
+        # wandb log the modeltype + codebooksize and results.
+        wandb.log({f'{model_type}_{codebook_size}': test_result})
+
         torch.save(model.state_dict(), f'model_{codebook_size}/{model_type}_{codebook_size}.pt')
         test_results[model_type]['codebook_size'].append(codebook_size)
         test_results[model_type]['mse_loss'].append(test_result['mse_loss'])
@@ -79,6 +82,7 @@ def main():
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
         train_model(model, train_loader, val_loader, optimizer, device, codebook_size, args)
         test_result = test_model(model, test_loader, device, codebook_size, model_type, args)
+        wandb.log({f'{model_type}_{codebook_size}': test_result})
         torch.save(model.state_dict(), f'model_{codebook_size}/{model_type}_{codebook_size}.pt')
         test_results[model_type]['codebook_size'].append(codebook_size)
         test_results[model_type]['mse_loss'].append(test_result['mse_loss'])
@@ -100,6 +104,7 @@ def main():
         optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
         train_model(model, train_loader, val_loader, optimizer, device, codebook_size, args)
         test_result = test_model(model, test_loader, device, codebook_size, model_type, args)
+        wandb.log({f'{model_type}_{codebook_size}': test_result})
         torch.save(model.state_dict(), f'model_{codebook_size}/{model_type}_{codebook_size}.pt')
         test_results[model_type]['codebook_size'].append(codebook_size)
         test_results[model_type]['mse_loss'].append(test_result['mse_loss'])
