@@ -15,14 +15,15 @@ NUM_CLASSES = 10
 LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 0.05
 
-EPOCHS = 150
+# Give a large max epoch number to rely on early stopping.
+MAX_EPOCHS = 20
+PATIENCE = 20      # Early stopping patience
 
 def main():
     experiment_names = ['lp', 'ft']
-    codebook_sizes = [65536, 16384, 4096, 1024, 256, 64, 16]
-    # codebook_sizes = [256]
+    # codebook_sizes = [65536, 16384, 4096, 1024, 256, 64, 16]
+    codebook_sizes = [16, 64, 256, 1024, 4096, 16384, 65536]
     model_types = ['vqvae', 'fsqvae', 'vqvae_rotation']
-    # model_types = ['fsqvae']
 
     wandb.init(project="Classification_Experiment")
 
@@ -35,8 +36,9 @@ def main():
     for experiment_name in experiment_names:
         for codebook_size in codebook_sizes:
             for model_type in model_types:
-                #set current wandb run name
-                wandb.run.name = f'{model_type}_{codebook_size}_{experiment_name}'
+                run = wandb.init(project="Classification_Experiment", 
+                                 name=f'{model_type}_{codebook_size}_{experiment_name}',
+                                 reinit=True)
                 # reconstruct model
                 if model_type == 'vqvae':
                     model_struct = VQVAE(
@@ -77,27 +79,27 @@ def main():
 
                 # Optimizer
                 optim = torch.optim.AdamW(model.parameters(),
-                                        lr=LEARNING_RATE * BATCH_SIZE / 256,
-                                        betas=(0.9, 0.999),
-                                        weight_decay=WEIGHT_DECAY)
+                                          lr=LEARNING_RATE * BATCH_SIZE / 256,
+                                          betas=(0.9, 0.999),
+                                          weight_decay=WEIGHT_DECAY)
 
-                total_steps = int((len(train_set) / BATCH_SIZE) * EPOCHS)
+                total_steps = int((len(train_set) / BATCH_SIZE) * MAX_EPOCHS)
                 warmup_epoch_percentage = 0.15
                 warmup_steps = int(total_steps * warmup_epoch_percentage)
 
                 scheduler = WarmUpCosine(optim, total_steps=total_steps, warmup_steps=warmup_steps, learning_rate_base=LEARNING_RATE, warmup_learning_rate=0.0)
 
                 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-                # if torch.cuda.device_count() > 1:
-                #     print(f"Use {torch.cuda.device_count()} GPUs.")
-                #     model = nn.DataParallel(model)
                 model = model.to(device)
-
 
                 step_count = 0
                 optim.zero_grad()
 
-                for e in range(EPOCHS):
+                best_val_acc = 0.0
+                epochs_no_improve = 0
+                best_model_state = None
+
+                for e in range(MAX_EPOCHS):
                     if experiment_name == 'lp':
                         model.encoder.eval()
                         model.quantizer.eval()
@@ -105,9 +107,10 @@ def main():
                     else:
                         model.train()
 
+                    # Training loop
                     losses = []
                     acces = []
-                    for img, label in tqdm(iter(train_loader)):
+                    for img, label in tqdm(iter(train_loader), desc=f"Training Epoch {e}/{MAX_EPOCHS}"):
                         step_count += 1
                         img = img.to(device)
                         label = label.to(device)
@@ -122,19 +125,54 @@ def main():
                     scheduler.step()
                     avg_train_loss = sum(losses) / len(losses)
                     avg_train_acc = sum(acces) / len(acces)
-                    # print(f'Epoch {e} - avg_train_loss: {avg_train_loss}, avg_train_acc: {avg_train_acc}')
+
+                    # Validation loop
+                    model.eval()
+                    with torch.no_grad():
+                        losses = []
+                        acces = []
+                        for img, label in tqdm(iter(val_loader), desc=f"Validation Epoch {e}/{MAX_EPOCHS}"):
+                            img = img.to(device)
+                            label = label.to(device)
+                            logits = model(img)
+                            loss = loss_fn(logits, label)
+                            acc = acc_fn(logits, label)
+                            losses.append(loss.item())
+                            acces.append(acc.item())
+                        avg_val_loss = sum(losses) / len(losses)
+                        avg_val_acc = sum(acces) / len(acces)
+
+                    # Log metrics
                     wandb.log({
                         "train_loss": avg_train_loss,
                         "train_acc": avg_train_acc,
-                        # "epoch": e
+                        "val_loss": avg_val_loss,
+                        "val_acc": avg_val_acc,
+                        "epoch": e
                     })
-                    
 
+                    # Early Stopping Check
+                    if avg_val_acc > best_val_acc:
+                        best_val_acc = avg_val_acc
+                        epochs_no_improve = 0
+                        best_model_state = model.state_dict()
+                    else:
+                        epochs_no_improve += 1
+
+                    if epochs_no_improve >= PATIENCE:
+                        print(f"Early stopping triggered at epoch {e}. Best val_acc: {best_val_acc:.4f}")
+                        break
+
+                # After training/early stopping, load the best model
+                if best_model_state is not None:
+                    model.load_state_dict(best_model_state)
+
+                # Final test evaluation
                 model.eval()
                 with torch.no_grad():
                     losses = []
                     acces = []
-                    for img, label in tqdm(iter(test_loader)):
+                    for img, label in tqdm(iter(test_loader), desc="Testing"):
                         img = img.to(device)
                         label = label.to(device)
                         logits = model(img)
@@ -142,11 +180,11 @@ def main():
                         acc = acc_fn(logits, label)
                         losses.append(loss.item())
                         acces.append(acc.item())
-                    avg_val_loss = sum(losses) / len(losses)
-                    avg_val_acc = sum(acces) / len(acces)
+                    avg_test_loss = sum(losses) / len(losses)
+                    avg_test_acc = sum(acces) / len(acces)
                     wandb.log({
-                        "val_loss": avg_val_loss,
-                        "val_acc": avg_val_acc
+                        "test_loss": avg_test_loss,
+                        "test_acc": avg_test_acc
                     })
 
 
