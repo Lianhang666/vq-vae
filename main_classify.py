@@ -20,7 +20,7 @@ EPOCHS = 100
 def main():
     experiment_name = 'fine-tune'
     # codebook_sizes = [65536, 16384, 4096, 1024, 256, 64, 16]
-    codebook_sizes = [256]
+    codebook_sizes = [65536]
     # model_types = ['vqvae', 'fsqvae', 'vqvae_rotation']
     model_types = ['vqvae']
 
