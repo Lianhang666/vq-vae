@@ -18,7 +18,7 @@ WEIGHT_DECAY = 0.05
 EPOCHS = 100
 
 def main():
-    experiment_name = 'linear_probe'
+    experiment_name = 'fine-tune'
     # codebook_sizes = [65536, 16384, 4096, 1024, 256, 64, 16]
     codebook_sizes = [256]
     # model_types = ['vqvae', 'fsqvae', 'vqvae_rotation']
@@ -35,7 +35,7 @@ def main():
     for codebook_size in codebook_sizes:
         for model_type in model_types:
             #set current wandb run name
-            wandb.run.name = f'{model_type}_{codebook_size}'
+            wandb.run.name = f'{model_type}_{codebook_size}_{experiment_name}'
             # reconstruct model
             if model_type == 'vqvae':
                 model_struct = VQVAE(
