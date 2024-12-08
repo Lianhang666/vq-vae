@@ -27,7 +27,7 @@ def main():
     # codebook_sizes = [16, 64, 256, 1024, 4096, 16384, 65536]
     model_types = ['vqvae', 'fsqvae', 'vqvae_rotation']
 
-    wandb.init(project="Classification_Experiment")
+    # wandb.init(project="Classification_Experiment")
 
     train_loader, val_loader, test_loader = get_cifar10_dataloaders(BATCH_SIZE, 4)
     train_set = train_loader.dataset
@@ -75,7 +75,8 @@ def main():
                 model_path_pre = f'./model_{codebook_size}'
                 model_name = f'{model_type}_{codebook_size}.pt'
                 model_path = os.path.join(model_path_pre, model_name)
-                params = torch.load(model_path, map_location=torch.device('cpu'))
+                # params = torch.load(model_path, map_location=torch.device('cpu'))
+                params = torch.load(model_path)
                 model_struct.load_state_dict(params)
                 model = vae_classifier(model_struct, n_classes=NUM_CLASSES)
 
