@@ -16,8 +16,8 @@ LEARNING_RATE = 1e-3
 WEIGHT_DECAY = 0.05
 
 # Give a large max epoch number to rely on early stopping.
-MAX_EPOCHS = 20
-PATIENCE = 20      # Early stopping patience
+MAX_EPOCHS = 500
+PATIENCE = 10      # Early stopping patience
 
 def main():
     experiment_names = ['lp', 'ft']
