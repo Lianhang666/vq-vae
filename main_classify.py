@@ -21,8 +21,10 @@ PATIENCE = 10      # Early stopping patience
 
 def main():
     experiment_names = ['lp', 'ft']
-    # codebook_sizes = [65536, 16384, 4096, 1024, 256, 64, 16]
-    codebook_sizes = [16, 64, 256, 1024, 4096, 16384, 65536]
+    # task: lph from 65536 to 16
+    codebook_sizes = [65536, 16384, 4096, 1024, 256, 64, 16]
+    # task: llh from 16 to 65536
+    # codebook_sizes = [16, 64, 256, 1024, 4096, 16384, 65536]
     model_types = ['vqvae', 'fsqvae', 'vqvae_rotation']
 
     wandb.init(project="Classification_Experiment")
