@@ -25,7 +25,7 @@ def main():
     codebook_sizes = [65536, 16384, 4096, 1024, 256, 64, 16]
     # task: llh from 16 to 65536
     # codebook_sizes = [16, 64, 256, 1024, 4096, 16384, 65536]
-    model_types = ['vqvae', 'fsqvae', 'vqvae_rotation']
+    model_types = ['vqvae_rotation', 'vqvae', 'fsqvae']
 
     # wandb.init(project="Classification_Experiment")
 
@@ -38,7 +38,7 @@ def main():
     for experiment_name in experiment_names:
         for codebook_size in codebook_sizes:
             for model_type in model_types:
-                run = wandb.init(project="Classification_Experiment", 
+                run = wandb.init(project="Classification_Experiment_1", 
                                  name=f'{model_type}_{codebook_size}_{experiment_name}',
                                  reinit=True)
                 # reconstruct model
@@ -82,7 +82,7 @@ def main():
 
                 # Optimizer
                 optim = torch.optim.AdamW(model.parameters(),
-                                          lr=LEARNING_RATE * BATCH_SIZE / 256,
+                                          lr=LEARNING_RATE,
                                           betas=(0.9, 0.999),
                                           weight_decay=WEIGHT_DECAY)
 
