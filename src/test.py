@@ -75,7 +75,7 @@ def test_model(model, test_loader, device, codebook_size, model_type, args):
     
     # Compute total codebook usage percentage
     # print(f'Total indices: {len(total_indices)}')
-    if model_type == 'fsq':
+    if model_type == 'fsqvae':
         codebook_size = multiplyList(fsq_levels_lookup[codebook_size])
     total_active_percentage = len(set(total_indices)) / codebook_size * 100
     
