@@ -99,6 +99,7 @@ def main():
                 optim.zero_grad()
 
                 best_val_acc = 0.0
+                best_val_loss = float('inf')
                 epochs_no_improve = 0
                 best_model_state = None
 
@@ -155,7 +156,15 @@ def main():
                     })
 
                     # Early Stopping Check
-                    if avg_val_acc > best_val_acc:
+                    # if avg_val_acc > best_val_acc:
+                    #     best_val_acc = avg_val_acc
+                    #     epochs_no_improve = 0
+                    #     best_model_state = model.state_dict()
+                    # else:
+                    #     epochs_no_improve += 1
+
+                    if avg_val_loss < best_val_loss:
+                        best_val_loss = avg_val_loss
                         best_val_acc = avg_val_acc
                         epochs_no_improve = 0
                         best_model_state = model.state_dict()
