@@ -21,13 +21,14 @@ PATIENCE = 10      # Early stopping patience
 
 ###################################
 # 修改开始：引入autocast和GradScaler #
-from torch.cuda.amp import autocast, GradScaler
+# from torch.cuda.amp import autocast, GradScaler
+from torch.amp import autocast, GradScaler
 ###################################
 
 def main():
     experiment_names = ['lp', 'ft']
-    codebook_sizes = [16]
-    model_types = ['vqvae']
+    codebook_sizes = [65536, 16384, 4096, 1024, 256, 64, 16]
+    model_types = ['vqvae', 'vqvae_rotation', 'fsqvae']
 
     train_loader, val_loader, test_loader = get_cifar10_dataloaders(BATCH_SIZE, 4)
     train_set = train_loader.dataset
@@ -124,7 +125,7 @@ def main():
                         
                         ###################################
                         # 修改开始：使用autocast进行前向计算 #
-                        with autocast():
+                        with autocast(device_type="cuda"):
                             logits = model(img)
                             loss = loss_fn(logits, label)
                         ###################################
@@ -154,7 +155,7 @@ def main():
                             label = label.to(device)
                             ###################################
                             # 修改开始：验证过程也可使用autocast   #
-                            with autocast():
+                            with autocast(device_type="cuda"):
                                 logits = model(img)
                                 loss = loss_fn(logits, label)
                             ###################################
@@ -196,7 +197,7 @@ def main():
                         label = label.to(device)
                         ###################################
                         # 修改开始：测试过程也可使用autocast   #
-                        with autocast():
+                        with autocast(device_type="cuda"):
                             logits = model(img)
                             loss = loss_fn(logits, label)
                         ###################################
