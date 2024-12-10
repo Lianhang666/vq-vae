@@ -74,7 +74,7 @@ def main():
                 model_name = f'{model_type}_{codebook_size}.pt'
                 model_path = os.path.join(model_path_pre, model_name)
                 params = torch.load(model_path)
-                model.load_state_dict(params)
+                model_struct.load_state_dict(params)
                 model = vae_classifier(model_struct, n_classes=NUM_CLASSES)
                 
                 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
