@@ -8,7 +8,7 @@ from src.models.vqvae import VQVAE
 from src.models.classifier import vae_classifier, WarmUpCosine
 from src.data.dataset import get_cifar10_dataloaders
 
-BATCH_SIZE = 1024
+BATCH_SIZE = 64
 INPUT_SHAPE = (32, 32, 3)
 NUM_CLASSES = 10
 
@@ -27,8 +27,8 @@ from torch.amp import autocast, GradScaler
 
 def main():
     experiment_names = ['lp', 'ft']
-    # codebook_sizes = [65536, 16384, 4096, 1024, 256, 64, 16]
-    codebook_sizes = [16, 64, 256, 1024, 4096, 16384, 65536]
+    codebook_sizes = [65536, 16384, 4096, 1024, 256, 64, 16]
+    # codebook_sizes = [16, 64, 256, 1024, 4096, 16384, 65536]
     model_types = ['vqvae', 'vqvae_rotation', 'fsqvae']
 
     train_loader, val_loader, test_loader = get_cifar10_dataloaders(BATCH_SIZE, 4)
