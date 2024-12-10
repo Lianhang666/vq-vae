@@ -8,7 +8,7 @@ from src.models.vqvae import VQVAE
 from src.models.classifier import vae_classifier, WarmUpCosine
 from src.data.dataset import get_cifar10_dataloaders
 
-BATCH_SIZE = 64
+BATCH_SIZE = 128
 INPUT_SHAPE = (32, 32, 3)
 NUM_CLASSES = 10
 
