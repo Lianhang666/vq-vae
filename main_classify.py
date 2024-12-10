@@ -39,10 +39,12 @@ def main():
 
     for experiment_name in experiment_names:
         for codebook_size in codebook_sizes:
-            for model_type in model_types:
+            for model_type in model_types:# Initialize wandb run
+                wandb.login(key="c1a738d565ce6a614812a9b1087ce4337960142b")
                 run = wandb.init(project="Classification_Experiment_2", 
                                  name=f'{model_type}_{codebook_size}_{experiment_name}',
                                  reinit=True)
+                
                 if model_type == 'vqvae':
                     model_struct = VQVAE(
                         in_channels=3,
