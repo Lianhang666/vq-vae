@@ -27,7 +27,8 @@ from torch.amp import autocast, GradScaler
 
 def main():
     experiment_names = ['lp', 'ft']
-    codebook_sizes = [65536, 16384, 4096, 1024, 256, 64, 16]
+    # codebook_sizes = [65536, 16384, 4096, 1024, 256, 64, 16]
+    codebook_sizes = [16, 64, 256, 1024, 4096, 16384, 65536]
     model_types = ['vqvae', 'vqvae_rotation', 'fsqvae']
 
     train_loader, val_loader, test_loader = get_cifar10_dataloaders(BATCH_SIZE, 4)
