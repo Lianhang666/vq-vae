@@ -8,7 +8,7 @@ from src.models.vqvae import VQVAE
 from src.models.classifier import vae_classifier, WarmUpCosine
 from src.data.dataset import get_cifar10_dataloaders
 
-BATCH_SIZE = 64
+BATCH_SIZE = 1024
 INPUT_SHAPE = (32, 32, 3)
 NUM_CLASSES = 10
 
@@ -19,12 +19,13 @@ WEIGHT_DECAY = 0.05
 MAX_EPOCHS = 500
 PATIENCE = 10      # Early stopping patience
 
+###################################
+# 修改开始：引入autocast和GradScaler #
+from torch.cuda.amp import autocast, GradScaler
+###################################
+
 def main():
     experiment_names = ['lp', 'ft']
-    # codebook_sizes = [65536, 16384, 4096, 1024, 256, 64, 16]
-    # model_types = ['vqvae_rotation', 'vqvae', 'fsqvae']
-
-    # FOR TESTING
     codebook_sizes = [16]
     model_types = ['vqvae']
 
@@ -40,7 +41,6 @@ def main():
                 run = wandb.init(project="Classification_Experiment_2", 
                                  name=f'{model_type}_{codebook_size}_{experiment_name}',
                                  reinit=True)
-                # reconstruct model
                 if model_type == 'vqvae':
                     model_struct = VQVAE(
                         in_channels=3,
@@ -70,25 +70,20 @@ def main():
                         rotation=True
                     )
 
-                # load the parameters
                 model_path_pre = f'./model_{codebook_size}'
                 model_name = f'{model_type}_{codebook_size}.pt'
                 model_path = os.path.join(model_path_pre, model_name)
                 params = torch.load(model_path)
 
                 model = vae_classifier(model_struct, n_classes=NUM_CLASSES)
-                model.load_state_dict(params)  # load weights before DataParallel
+                model.load_state_dict(params)
 
-                # Modified: Setup GPUs
                 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-                # Move model to device
                 model = model.to(device)
-                # Wrap model with DataParallel if more than one GPU is available
-                if torch.cuda.device_count() > 1:  # Modified
+                if torch.cuda.device_count() > 1:
                     print(f"Using {torch.cuda.device_count()} GPUs!")
-                    model = torch.nn.DataParallel(model)  # Modified
+                    model = torch.nn.DataParallel(model)
 
-                # Optimizer
                 optim = torch.optim.AdamW(model.parameters(),
                                           lr=LEARNING_RATE,
                                           betas=(0.9, 0.999),
@@ -103,6 +98,11 @@ def main():
                 step_count = 0
                 optim.zero_grad()
 
+                ###################################
+                # 修改开始：初始化GradScaler实例     #
+                scaler = GradScaler()
+                ###################################
+
                 best_val_acc = 0.0
                 best_val_loss = float('inf')
                 epochs_no_improve = 0
@@ -110,25 +110,35 @@ def main():
 
                 for e in range(MAX_EPOCHS):
                     if experiment_name == 'lp':
-                        # When using DataParallel, model.module allows access to the original model
                         (model.module if hasattr(model, 'module') else model).encoder.eval()
                         (model.module if hasattr(model, 'module') else model).quantizer.eval()
                         (model.module if hasattr(model, 'module') else model).head.train()
                     else:
                         model.train()
 
-                    # Training loop
                     losses = []
                     acces = []
                     for img, label in tqdm(iter(train_loader), desc=f"Training Epoch {e}/{MAX_EPOCHS}"):
                         step_count += 1
                         img = img.to(device)
                         label = label.to(device)
-                        logits = model(img)
-                        loss = loss_fn(logits, label)
+                        
+                        ###################################
+                        # 修改开始：使用autocast进行前向计算 #
+                        with autocast():
+                            logits = model(img)
+                            loss = loss_fn(logits, label)
+                        ###################################
+
                         acc = acc_fn(logits, label)
-                        loss.backward()
-                        optim.step()
+
+                        ###################################
+                        # 修改开始：使用scaler进行梯度缩放和更新 #
+                        scaler.scale(loss).backward()
+                        scaler.step(optim)
+                        scaler.update()
+                        ###################################
+
                         optim.zero_grad()
                         losses.append(loss.item())
                         acces.append(acc.item())
@@ -136,7 +146,6 @@ def main():
                     avg_train_loss = sum(losses) / len(losses)
                     avg_train_acc = sum(acces) / len(acces)
 
-                    # Validation loop
                     model.eval()
                     with torch.no_grad():
                         losses = []
@@ -144,15 +153,18 @@ def main():
                         for img, label in tqdm(iter(val_loader), desc=f"Validation Epoch {e}/{MAX_EPOCHS}"):
                             img = img.to(device)
                             label = label.to(device)
-                            logits = model(img)
-                            loss = loss_fn(logits, label)
+                            ###################################
+                            # 修改开始：验证过程也可使用autocast   #
+                            with autocast():
+                                logits = model(img)
+                                loss = loss_fn(logits, label)
+                            ###################################
                             acc = acc_fn(logits, label)
                             losses.append(loss.item())
                             acces.append(acc.item())
                         avg_val_loss = sum(losses) / len(losses)
                         avg_val_acc = sum(acces) / len(acces)
 
-                    # Log metrics
                     wandb.log({
                         "train_loss": avg_train_loss,
                         "train_acc": avg_train_acc,
@@ -165,7 +177,6 @@ def main():
                         best_val_loss = avg_val_loss
                         best_val_acc = avg_val_acc
                         epochs_no_improve = 0
-                        # Save the model state. If using DataParallel, save model.module state
                         best_model_state = (model.module if hasattr(model, 'module') else model).state_dict()
                     else:
                         epochs_no_improve += 1
@@ -174,11 +185,9 @@ def main():
                         print(f"Early stopping triggered at epoch {e}. Best val_acc: {best_val_acc:.4f}")
                         break
 
-                # After training/early stopping, load the best model
                 if best_model_state is not None:
                     (model.module if hasattr(model, 'module') else model).load_state_dict(best_model_state)
 
-                # Final test evaluation
                 model.eval()
                 with torch.no_grad():
                     losses = []
@@ -186,8 +195,12 @@ def main():
                     for img, label in tqdm(iter(test_loader), desc="Testing"):
                         img = img.to(device)
                         label = label.to(device)
-                        logits = model(img)
-                        loss = loss_fn(logits, label)
+                        ###################################
+                        # 修改开始：测试过程也可使用autocast   #
+                        with autocast():
+                            logits = model(img)
+                            loss = loss_fn(logits, label)
+                        ###################################
                         acc = acc_fn(logits, label)
                         losses.append(loss.item())
                         acces.append(acc.item())
