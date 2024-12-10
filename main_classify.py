@@ -21,13 +21,12 @@ PATIENCE = 10      # Early stopping patience
 
 def main():
     experiment_names = ['lp', 'ft']
-    # task: lph from 65536 to 16
-    codebook_sizes = [65536, 16384, 4096, 1024, 256, 64, 16]
-    # task: llh from 16 to 65536
-    # codebook_sizes = [16, 64, 256, 1024, 4096, 16384, 65536]
-    model_types = ['vqvae_rotation', 'vqvae', 'fsqvae']
+    # codebook_sizes = [65536, 16384, 4096, 1024, 256, 64, 16]
+    # model_types = ['vqvae_rotation', 'vqvae', 'fsqvae']
 
-    # wandb.init(project="Classification_Experiment")
+    # FOR TESTING
+    codebook_sizes = [16]
+    model_types = ['vqvae']
 
     train_loader, val_loader, test_loader = get_cifar10_dataloaders(BATCH_SIZE, 4)
     train_set = train_loader.dataset
@@ -38,7 +37,7 @@ def main():
     for experiment_name in experiment_names:
         for codebook_size in codebook_sizes:
             for model_type in model_types:
-                run = wandb.init(project="Classification_Experiment_1", 
+                run = wandb.init(project="Classification_Experiment_2", 
                                  name=f'{model_type}_{codebook_size}_{experiment_name}',
                                  reinit=True)
                 # reconstruct model
@@ -75,10 +74,19 @@ def main():
                 model_path_pre = f'./model_{codebook_size}'
                 model_name = f'{model_type}_{codebook_size}.pt'
                 model_path = os.path.join(model_path_pre, model_name)
-                # params = torch.load(model_path, map_location=torch.device('cpu'))
                 params = torch.load(model_path)
-                model_struct.load_state_dict(params)
+
                 model = vae_classifier(model_struct, n_classes=NUM_CLASSES)
+                model.load_state_dict(params)  # load weights before DataParallel
+
+                # Modified: Setup GPUs
+                device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+                # Move model to device
+                model = model.to(device)
+                # Wrap model with DataParallel if more than one GPU is available
+                if torch.cuda.device_count() > 1:  # Modified
+                    print(f"Using {torch.cuda.device_count()} GPUs!")
+                    model = torch.nn.DataParallel(model)  # Modified
 
                 # Optimizer
                 optim = torch.optim.AdamW(model.parameters(),
@@ -87,13 +95,10 @@ def main():
                                           weight_decay=WEIGHT_DECAY)
 
                 total_steps = int((len(train_set) / BATCH_SIZE) * MAX_EPOCHS)
-                warmup_epoch_percentage = 0.15
+                warmup_epoch_percentage = 0.1
                 warmup_steps = int(total_steps * warmup_epoch_percentage)
 
                 scheduler = WarmUpCosine(optim, total_steps=total_steps, warmup_steps=warmup_steps, learning_rate_base=LEARNING_RATE, warmup_learning_rate=0.0)
-
-                device = 'cuda' if torch.cuda.is_available() else 'cpu'
-                model = model.to(device)
 
                 step_count = 0
                 optim.zero_grad()
@@ -105,9 +110,10 @@ def main():
 
                 for e in range(MAX_EPOCHS):
                     if experiment_name == 'lp':
-                        model.encoder.eval()
-                        model.quantizer.eval()
-                        model.head.train()
+                        # When using DataParallel, model.module allows access to the original model
+                        (model.module if hasattr(model, 'module') else model).encoder.eval()
+                        (model.module if hasattr(model, 'module') else model).quantizer.eval()
+                        (model.module if hasattr(model, 'module') else model).head.train()
                     else:
                         model.train()
 
@@ -155,19 +161,12 @@ def main():
                         "epoch": e
                     })
 
-                    # Early Stopping Check
-                    # if avg_val_acc > best_val_acc:
-                    #     best_val_acc = avg_val_acc
-                    #     epochs_no_improve = 0
-                    #     best_model_state = model.state_dict()
-                    # else:
-                    #     epochs_no_improve += 1
-
                     if avg_val_loss < best_val_loss:
                         best_val_loss = avg_val_loss
                         best_val_acc = avg_val_acc
                         epochs_no_improve = 0
-                        best_model_state = model.state_dict()
+                        # Save the model state. If using DataParallel, save model.module state
+                        best_model_state = (model.module if hasattr(model, 'module') else model).state_dict()
                     else:
                         epochs_no_improve += 1
 
@@ -177,7 +176,7 @@ def main():
 
                 # After training/early stopping, load the best model
                 if best_model_state is not None:
-                    model.load_state_dict(best_model_state)
+                    (model.module if hasattr(model, 'module') else model).load_state_dict(best_model_state)
 
                 # Final test evaluation
                 model.eval()
