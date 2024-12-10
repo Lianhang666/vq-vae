@@ -18,6 +18,7 @@ WEIGHT_DECAY = 0.05
 # Give a large max epoch number to rely on early stopping.
 MAX_EPOCHS = 500
 PATIENCE = 10      # Early stopping patience
+ENABLE_AMP = True  # Automatic Mixed Precision
 
 def main():
     experiment_names = ['lp', 'ft']
@@ -121,17 +122,18 @@ def main():
                     losses = []
                     acces = []
                     for img, label in tqdm(iter(train_loader), desc=f"Training Epoch {e}/{MAX_EPOCHS}"):
-                        step_count += 1
-                        img = img.to(device)
-                        label = label.to(device)
-                        logits = model(img)
-                        loss = loss_fn(logits, label)
-                        acc = acc_fn(logits, label)
-                        loss.backward()
-                        optim.step()
-                        optim.zero_grad()
-                        losses.append(loss.item())
-                        acces.append(acc.item())
+                        with torch.autocast(device_type="cuda", enabled=ENABLE_AMP):
+                            step_count += 1
+                            img = img.to(device)
+                            label = label.to(device)
+                            logits = model(img)
+                            loss = loss_fn(logits, label)
+                            acc = acc_fn(logits, label)
+                            loss.backward()
+                            optim.step()
+                            optim.zero_grad()
+                            losses.append(loss.item())
+                            acces.append(acc.item())
                     scheduler.step()
                     avg_train_loss = sum(losses) / len(losses)
                     avg_train_acc = sum(acces) / len(acces)
