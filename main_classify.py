@@ -7,6 +7,7 @@ from tqdm import tqdm
 from src.models.vqvae import VQVAE
 from src.models.classifier import vae_classifier, WarmUpCosine
 from src.data.dataset import get_cifar10_dataloaders
+from torch.profiler import profile, record_function, ProfilerActivity
 
 BATCH_SIZE = 64
 INPUT_SHAPE = (32, 32, 3)
@@ -25,12 +26,12 @@ def main():
     # task: lph from 65536 to 16
     codebook_sizes = [65536, 16384, 4096, 1024, 256, 64, 16]
     # task: llh from 16 to 65536
-    # codebook_sizes = [16, 64, 256, 1024, 4096, 16384, 65536]
+    codebook_sizes = [4096]
     model_types = ['vqvae_rotation', 'vqvae', 'fsqvae']
 
     # wandb.init(project="Classification_Experiment")
 
-    train_loader, val_loader, test_loader = get_cifar10_dataloaders(BATCH_SIZE, 4)
+    train_loader, val_loader, test_loader = get_cifar10_dataloaders(BATCH_SIZE, 8)
     train_set = train_loader.dataset
 
     loss_fn = torch.nn.CrossEntropyLoss()
@@ -39,7 +40,7 @@ def main():
     for experiment_name in experiment_names:
         for codebook_size in codebook_sizes:
             for model_type in model_types:
-                run = wandb.init(project="Classification_Experiment_1", 
+                run = wandb.init(project="Classification_Experiment_test", 
                                  name=f'{model_type}_{codebook_size}_{experiment_name}',
                                  reinit=True)
                 # reconstruct model
@@ -115,20 +116,25 @@ def main():
                     # Training loop
                     losses = []
                     acces = []
+                    activities = [ProfilerActivity.CPU, ProfilerActivity.CUDA]
                     for img, label in tqdm(iter(train_loader), desc=f"Training Epoch {e}/{MAX_EPOCHS}"):
                         with torch.autocast(device_type="cuda", enabled=ENABLE_AMP):
                             step_count += 1
                             img = img.to(device)
                             label = label.to(device)
-                            logits = model(img)
-                            loss = loss_fn(logits, label)
-                            acc = acc_fn(logits, label)
-                            loss.backward()
-                            optim.step()
-                            optim.zero_grad()
+                            with profile(activities=activities, record_shapes=True) as prof:
+                                logits = model(img)
+                                loss = loss_fn(logits, label)
+                                acc = acc_fn(logits, label)
+                                loss.backward()
+                                optim.step()
+                                optim.zero_grad()
                             losses.append(loss.item())
                             acces.append(acc.item())
                     scheduler.step()
+                    sort_by_keyword = device + "_time_total"
+                    print(prof.key_averages().table(sort_by=sort_by_keyword, row_limit=10))
+
                     avg_train_loss = sum(losses) / len(losses)
                     avg_train_acc = sum(acces) / len(acces)
 
@@ -156,6 +162,8 @@ def main():
                         "val_acc": avg_val_acc,
                         "epoch": e
                     })
+
+                    exit()
 
                     # Early Stopping Check
                     # if avg_val_acc > best_val_acc:
