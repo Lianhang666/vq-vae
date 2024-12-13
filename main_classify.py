@@ -12,7 +12,7 @@ BATCH_SIZE = 128
 INPUT_SHAPE = (32, 32, 3)
 NUM_CLASSES = 10
 
-LEARNING_RATE = 1e-3
+LEARNING_RATE = 3e-3
 WEIGHT_DECAY = 0.05
 
 # Give a large max epoch number to rely on early stopping.
@@ -27,7 +27,7 @@ from torch.amp import autocast, GradScaler
 
 def main():
     experiment_names = ['lp', 'ft']
-    codebook_sizes = [65536, 16384, 4096, 1024, 256, 64, 16]
+    codebook_sizes = [65536]
     # codebook_sizes = [16, 64, 256, 1024, 4096, 16384, 65536]
     model_types = ['vqvae', 'vqvae_rotation', 'fsqvae']
 
@@ -40,7 +40,7 @@ def main():
     for experiment_name in experiment_names:
         for codebook_size in codebook_sizes:
             for model_type in model_types:
-                run = wandb.init(project="Classification_Experiment_2", 
+                run = wandb.init(project="Classification_Experiment_65536", 
                                  name=f'{model_type}_{codebook_size}_{experiment_name}',
                                  reinit=True)
                 if model_type == 'vqvae':
