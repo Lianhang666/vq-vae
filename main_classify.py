@@ -17,7 +17,7 @@ WEIGHT_DECAY = 0.05
 
 # Give a large max epoch number to rely on early stopping.
 MAX_EPOCHS = 500
-PATIENCE = 10      # Early stopping patience
+PATIENCE = 200     # Early stopping patience
 
 ###################################
 # 修改开始：引入autocast和GradScaler #
@@ -26,10 +26,10 @@ from torch.amp import autocast, GradScaler
 ###################################
 
 def main():
-    experiment_names = ['lp', 'ft']
-    codebook_sizes = [65536]
+    experiment_names = ['ft']
+    codebook_sizes = [16384]
     # codebook_sizes = [16, 64, 256, 1024, 4096, 16384, 65536]
-    model_types = ['vqvae', 'vqvae_rotation', 'fsqvae']
+    model_types = ['vqvae', 'fsqvae']
 
     train_loader, val_loader, test_loader = get_cifar10_dataloaders(BATCH_SIZE, 4)
     train_set = train_loader.dataset
@@ -40,7 +40,7 @@ def main():
     for experiment_name in experiment_names:
         for codebook_size in codebook_sizes:
             for model_type in model_types:
-                run = wandb.init(project="Classification_Experiment_65536", 
+                run = wandb.init(project="Classification_FT_16384", 
                                  name=f'{model_type}_{codebook_size}_{experiment_name}',
                                  reinit=True)
                 if model_type == 'vqvae':
