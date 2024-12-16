@@ -1,0 +1,9 @@
+*.pyc
+checkpoints/
+*.log
+*.json
+wandb/
+*.png
+*.pt
+*.txt
+test_results/

@@ -6,11 +6,11 @@ def get_cifar10_dataloaders(batch_size=128, num_workers=4):
     torch.manual_seed(42)
     transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
     
     train_full = datasets.CIFAR10(
-        root='../../data',
+        root='../data',
         train=True,
         download=True,
         transform=transform
@@ -22,7 +22,7 @@ def get_cifar10_dataloaders(batch_size=128, num_workers=4):
     train_dataset,val_dataset=random_split(train_full,[train_size,val_size])
     
     test_dataset = datasets.CIFAR10(
-        root='../../data',
+        root='../data',
         train=False,
         download=True,
         transform=transform
