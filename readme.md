@@ -4,7 +4,7 @@ Implementation of "Neural Discrete Representation Learning" with Vector Quantiza
 
 A comparison study of VQ, FSQ and VQ+Rotation.
 
-![model](model_all.png)
+![model](model_all.jpg)
 
 ## Setup
 ```bash
