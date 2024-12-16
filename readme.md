@@ -2,6 +2,10 @@
 
 Implementation of "Neural Discrete Representation Learning" with Vector Quantization for CIFAR10.
 
+A comparison study of VQ, FSQ and VQ+Rotation.
+
+![model](model_all.jpg)
+
 ## Setup
 ```bash
 pip install -r requirements.txt
